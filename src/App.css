@@ -1,0 +1,13 @@
+.rect-class {
+	position: absolute;
+	width: 70px;
+	height: 70px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.main-game-window {
+	position: relative;
+	border: 1px solid black;
+}
