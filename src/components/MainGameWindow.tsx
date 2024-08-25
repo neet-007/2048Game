@@ -40,6 +40,7 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
   const [i, setI] = useState(-1);
   const [start, setStart] = useState(-1);
   const [curr, setCurr] = useState(-1);
+  const [mergeIndex, setMergeIndex] = useState(-1);
   const rectContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,13 +84,6 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
       return
     }
 
-    const rectContainerChildren = rectContainerRef.current.children
-    if (start + columnSize <= ((rowSize - 1) * columnSize) + i) {
-      rectContainerChildren[start + columnSize].classList.remove("rect-down-transform");
-      rectContainerChildren[start + columnSize].classList.remove("rect-up-transform");
-    }
-    rectContainerChildren[start].classList.remove("rect-up-transform");
-    rectContainerChildren[start].classList.remove("rect-down-transform");
     setCurr(start);
   }, [start])
 
@@ -108,19 +102,32 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
 
     const rectContainerChildren = rectContainerRef.current.children
     const newRect = [...rectangles];
-    let c = 0
-    while (c < newRect.length) {
-      rectContainerChildren[c].classList.remove("rect-down-transform");
-      rectContainerChildren[c].classList.remove("rect-up-transform");
-      c++;
+
+    if (mergeIndex > -1) {
+      setTimeout(() => {
+        rectContainerChildren[mergeIndex].classList.add("rect-merge")
+        setMergeIndex(-1);
+      }, 200)
     }
 
     if (newRect[curr - columnSize] != undefined) {
+      if (newRect[curr] == newRect[curr - columnSize]) {
+        newRect[curr - columnSize] = newRect[curr] + newRect[curr - columnSize] as MultiableOfTwo;
+        newRect[curr] = undefined;
+        setMergeIndex(curr - columnSize);
+      }
       setTimeout(() => {
-        setCurr(prev => prev - columnSize)
-      }, 500)
+        setCurr(prev => prev - columnSize);
+        setRectangles(newRect);
+      }, 200)
       return;
     }
+
+    if (newRect[curr - columnSize] === undefined && newRect[curr] === undefined) {
+      setCurr(prev => prev - columnSize);
+      return
+    }
+
     const temp = newRect[curr];
     newRect[curr] = newRect[curr - columnSize];
     newRect[curr - columnSize] = temp;
@@ -128,13 +135,17 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
     rectContainerChildren[curr - columnSize].classList.add("rect-up-transform");
 
     const timeOut = setTimeout(() => {
+      rectContainerChildren[curr - columnSize].classList.remove("rect-down-transform");
+      rectContainerChildren[curr - columnSize].classList.remove("rect-up-transform");
+      rectContainerChildren[curr].classList.remove("rect-up-transform");
+      rectContainerChildren[curr].classList.remove("rect-down-transform");
       setCurr(prev => prev - columnSize)
       setRectangles(newRect)
-    }, 500)
+    }, 200)
 
     return () => clearTimeout(timeOut)
 
-  }, [curr])
+  }, [curr, mergeIndex])
 
   return (
     <div style={{ width: `${rowSize * 70}px`, height: `${columnSize * 70}px` }}

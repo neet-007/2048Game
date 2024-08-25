@@ -7,19 +7,33 @@
 	align-items: center;
 }
 
+.rect-merge {
+	animation: rect-merge-animation 200ms ease-in-out;
+}
+
 .rect-up-transform {
 	transform: translateY(70px);
 	background-color: red;
-	transition: transform 500ms ease-in-out;
+	transition: transform 200ms ease-in-out;
 }
 
 .rect-down-transform {
 	transform: translateY(-70px);
 	background-color: red;
-	transition: transform 500ms ease-in-out;
+	transition: transform 200ms ease-in-out;
 }
 
 .main-game-window {
 	position: relative;
 	border: 1px solid black;
+}
+
+@keyframes rect-merge-animation {
+	0% {
+		transform: scale(90%);
+	}
+
+	100% {
+		transform: scale(100%);
+	}
 }
