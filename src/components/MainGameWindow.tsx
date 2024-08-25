@@ -16,9 +16,11 @@ const Rectangle: React.FC<ComponentProps<"div"> & ReactangleProps> = ({ rectColo
     <div
       {...props}
       style={{
-        backgroundColor: rectColor, color: "white",
+        backgroundColor: rectColor,
+        color: "white",
         top: rectGapY,
-        left: rectGapX
+        left: rectGapX,
+        zIndex: rectValue ? 100 : -100
       }}
       className="rect-class">
       {rectValue}
@@ -106,11 +108,11 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
 
     const rectContainerChildren = rectContainerRef.current.children
     const newRect = [...rectangles];
-    if (curr != start) {
-      rectContainerChildren[curr + columnSize].classList.remove("rect-down-transform");
-      rectContainerChildren[curr + columnSize].classList.remove("rect-up-transform");
-      rectContainerChildren[curr].classList.remove("rect-down-transform");
-      rectContainerChildren[curr].classList.remove("rect-up-transform");
+    let c = 0
+    while (c < newRect.length) {
+      rectContainerChildren[c].classList.remove("rect-down-transform");
+      rectContainerChildren[c].classList.remove("rect-up-transform");
+      c++;
     }
 
     if (newRect[curr - columnSize] != undefined) {
@@ -122,6 +124,8 @@ const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
     const temp = newRect[curr];
     newRect[curr] = newRect[curr - columnSize];
     newRect[curr - columnSize] = temp;
+    rectContainerChildren[curr].classList.add("rect-down-transform");
+    rectContainerChildren[curr - columnSize].classList.add("rect-up-transform");
 
     const timeOut = setTimeout(() => {
       setCurr(prev => prev - columnSize)
