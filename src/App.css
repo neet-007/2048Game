@@ -9,11 +9,11 @@
 }
 
 .rect-up-transform {
-	transform: translateY(-70px)
+	transform: translateY(70px)
 }
 
 .rect-down-transform {
-	transform: translateY(70px)
+	transform: translateY(-70px)
 }
 
 .main-game-window {

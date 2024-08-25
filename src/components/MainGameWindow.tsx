@@ -1,22 +1,24 @@
-import React, { ComponentProps, useRef, useState } from "react";
+import React, { ComponentProps, useEffect, useRef, useState } from "react";
 
 type MultiableOfTwo = 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | undefined
 
 type ReactangleProps = {
   rectColor: string
   rectValue: MultiableOfTwo
-  rectGap: string
+  rectGapX: number
+  rectGapY: number
 }
 
 const Rectangle: React.FC<ComponentProps<"div"> & ReactangleProps> = ({ rectColor, rectValue,
-  rectGap, ...props }) => {
+  rectGapX, rectGapY, ...props }) => {
 
   return (
     <div
       {...props}
       style={{
         backgroundColor: rectColor, color: "white",
-        transform: rectGap
+        top: rectGapY,
+        left: rectGapX
       }}
       className="rect-class">
       {rectValue}
@@ -32,62 +34,114 @@ type MainGameWindowProps = {
 const MainGameWindow: React.FC<ComponentProps<"div"> & MainGameWindowProps> = ({
   rowSize, columnSize, ...props }) => {
   const [rectangles, setRectangles] = useState<MultiableOfTwo[]>([undefined, 2, 2, undefined, undefined, 2, undefined, 2, 2, undefined, 2, undefined, 2, undefined, 2, undefined])
+  const [gameState, setGameState] = useState<"up" | "down" | "none">("none")
+  const [i, setI] = useState(-1);
+  const [start, setStart] = useState(-1);
+  const [curr, setCurr] = useState(-1);
   const rectContainerRef = useRef<HTMLDivElement>(null);
 
-  function moveUp() {
+  useEffect(() => {
+    if (gameState == "none") {
+      setI(-1);
+      return;
+    }
+
+    if (gameState == "up") {
+      setI(0);
+      return
+    }
+
+  }, [gameState])
+
+  useEffect(() => {
+    if (i === -1) {
+      setStart(-1);
+      return
+    }
+    if (i >= columnSize) {
+      setGameState("none");
+      return
+    }
+
+    setStart(i + columnSize);
+
+  }, [i])
+
+  useEffect(() => {
+    if (start === -1) {
+      setCurr(-1);
+      return
+    }
+    if (start > ((rowSize - 1) * columnSize) + i) {
+      setI(prev => prev + 1);
+      return
+    }
+
     if (rectContainerRef.current === null) {
       return
     }
+
     const rectContainerChildren = rectContainerRef.current.children
+    if (start + columnSize <= ((rowSize - 1) * columnSize) + i) {
+      rectContainerChildren[start + columnSize].classList.remove("rect-down-transform");
+      rectContainerChildren[start + columnSize].classList.remove("rect-up-transform");
+    }
+    rectContainerChildren[start].classList.remove("rect-up-transform");
+    rectContainerChildren[start].classList.remove("rect-down-transform");
+    setCurr(start);
+  }, [start])
 
-    setRectangles(prev => {
-      const newRect = [...prev];
+  useEffect(() => {
+    if (curr === -1) {
+      return
+    }
+    if (curr <= i) {
+      setStart(prev => prev + columnSize);
+      return
+    }
 
-      for (let i = 0; i < columnSize; i++) {
-        let start = i + columnSize;
+    if (rectContainerRef.current === null) {
+      return
+    }
 
-        while (start <= ((rowSize - 1) * columnSize) + i) {
-          let curr = start;
+    const rectContainerChildren = rectContainerRef.current.children
+    const newRect = [...rectangles];
+    if (curr != start) {
+      rectContainerChildren[curr + columnSize].classList.remove("rect-down-transform");
+      rectContainerChildren[curr + columnSize].classList.remove("rect-up-transform");
+      rectContainerChildren[curr].classList.remove("rect-down-transform");
+      rectContainerChildren[curr].classList.remove("rect-up-transform");
+    }
 
-          while (curr > i) {
-            if (curr != start) {
-              rectContainerChildren[curr + columnSize].classList.remove("rect-down-transform");
-            }
-            rectContainerChildren[curr].classList.remove("rect-up-transform");
+    if (newRect[curr - columnSize] != undefined) {
+      setTimeout(() => {
+        setCurr(prev => prev - columnSize)
+      }, 500)
+      return;
+    }
+    const temp = newRect[curr];
+    newRect[curr] = newRect[curr - columnSize];
+    newRect[curr - columnSize] = temp;
 
-            if (newRect[curr - columnSize] != undefined) {
-              curr = curr - columnSize
-              continue;
-            }
-            const temp = newRect[curr];
-            newRect[curr] = newRect[curr - columnSize];
-            newRect[curr - columnSize] = temp;
-            const c = curr
-            setTimeout(() => {
-              rectContainerChildren[c].classList.add("rect-down-transform");
-              rectContainerChildren[c - columnSize].classList.add("rect-up-transform");
-            }, 500)
+    const timeOut = setTimeout(() => {
+      setCurr(prev => prev - columnSize)
+      setRectangles(newRect)
+    }, 500)
 
-            curr = curr - columnSize
-          }
-          start = start + columnSize;
-        }
-      }
+    return () => clearTimeout(timeOut)
 
-      return newRect
-    })
-  }
+  }, [curr])
 
   return (
     <div style={{ width: `${rowSize * 70}px`, height: `${columnSize * 70}px` }}
       className="main-game-window" ref={rectContainerRef} {...props}>
       {rectangles.map((val, index) => (
         <Rectangle key={`${index}-rect`}
-          rectGap={`translate(${(((index) % columnSize) * 70)}px, 
-          ${(Math.floor(index / rowSize)) * 70}px)`}
+          rectGapX={(((index) % columnSize) * 70)}
+          rectGapY={(Math.floor(index / rowSize)) * 70}
           rectColor={`${val ? "blue" : "white"}`} rectValue={val} />
       ))}
-      <button style={{ position: "absolute", zIndex: "100" }} onClick={moveUp}>dsad</button>
+      <button style={{ position: "absolute", zIndex: "100" }} onClick={() => setGameState("up")}>dsad</button>
     </div>
   )
 }
